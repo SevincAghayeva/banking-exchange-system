@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package com.bank.grpc.exchange;
+
+option java_multiple_files = true;
+option java_package = "com.bank.grpc.exchange";
+
+enum Currency {
+  CURRENCY_UNKNOWN = 0;
+  USD = 1;
+  AZN = 2;
+  EUR = 3;
+  RUB = 4;
+  BTC = 5;
+}
+
+message RateRequest {
+  Currency from_currency = 1;
+  Currency to_currency = 2;
+}
+
+message RateResponse {
+  Currency from_currency = 1;
+  Currency to_currency = 2;
+  double rate = 3;
+}
+
+service ExchangeService {
+  rpc getRate(RateRequest) returns (RateResponse);
+  rpc getLiveRates(RateRequest) returns (stream RateResponse);
+}
