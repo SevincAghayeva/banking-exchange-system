@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  postgres-db:
+    image: postgres:15-alpine
+    container_name: banking_postgres_db
+    environment:
+      POSTGRES_DB: test
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: user
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - banking-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  banking-app:
+    build: .
+    container_name: banking_exchange_app
+    ports:
+      - "8080:8080"
+      - "9090:9090"
+    environment:
+      SPRING_APPLICATION_NAME: banking-exchange-system
+      SERVER_PORT: 8080
+      GRPC_SERVER_PORT: 9090
+
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/test
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: user
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
+
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "true"
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+      SPRING_JPA_OPEN_IN_VIEW: "false"
+      SPRING_GRAPHQL_GRAPHIQL_ENABLED: "true"
+
+      GRPC_CLIENT_EXCHANGECLIENT_ADDRESS: static://banking-app:9090
+      GRPC_CLIENT_EXCHANGECLIENT_NEGOTIATIONTYPE: plaintext
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    networks:
+      - banking-network
+
+networks:
+  banking-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

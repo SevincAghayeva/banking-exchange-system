@@ -1,0 +1,15 @@
+type BankAccount {
+    id: ID!
+    holderName: String!
+    balance: Float!
+    currency: String!
+}
+
+type Query {
+    getAccountById(id: ID!): BankAccount
+    getAllAccounts: [BankAccount]!
+}
+
+type Mutation {
+    createNewAccount(holderName: String!, balance: Float!, currency: String!): BankAccount!
+}
